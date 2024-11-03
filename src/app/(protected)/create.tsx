@@ -23,6 +23,12 @@ import Video from 'react-native-video';
 import { useAuthUser } from '@/src/services/providers/AuthUserProvider';
 import { Image } from 'react-native-elements';
 import 'react-native-gesture-handler';
+import { Livepeer } from 'livepeer';
+import * as tus from 'tus-js-client'
+
+const livepeer = new Livepeer({
+  apiKey: process.env.EXPO_PUBLIC_LIVEPEER_API_KEY,
+});
 
 const CameraScreen = () => {
 
@@ -54,7 +60,7 @@ const CameraScreen = () => {
   //compression
   const [isCompressing, setIsCompressing] = useState(false);
   const [isDurationError, setIsDurationError] = useState(false);
-  
+
   //vid res
   const [recordedVideo, setRecordedVideo] = useState<any>(null); //video taken from camera
   const [cameraRollVideo, setCameraRollVideo] = useState<string>(); //video taken from camera roll
@@ -83,6 +89,7 @@ const CameraScreen = () => {
       allowsEditing: true,
       selectionLimit: 1,
       videoMaxDuration: 3,
+      aspect: [9, 16],
       exif: true,
     });
 
@@ -90,26 +97,50 @@ const CameraScreen = () => {
 
     if (!result.canceled) {
 
-      //check duration
-      if(result.assets[0].duration && (result.assets[0].duration > 3500 || result.assets[0].duration < 2500)){
-        setIsDurationError(true)
+      // Check duration
+      if (result.assets[0].duration && (result.assets[0].duration > 3500 || result.assets[0].duration < 2500)) {
+        setIsDurationError(true);
         return;
       }
 
-      const thumb = await generateThumbnail(result.assets[0].uri); //generate thumb
-      console.log("thumb", thumb)
-      
-      if (thumb) { 
-        const compThumb = await compressThumbnail(thumb) //compress thumb
-        console.log("compThumb", compThumb)
+      // Check aspect ratio
+      let videoToProcess: string | null = result.assets[0].uri; // Initial video URI
+      const aspectRatio = result.assets[0].width / result.assets[0].height;
+      const expectedAspectRatio = 9 / 16;
+      const tolerance = 0.01; // Allows for minor floating-point differences
 
-        if(compThumb != null) setThumbnail(compThumb) // set thum
+      if (Math.abs(aspectRatio - expectedAspectRatio) > tolerance) {
+        // Video is not 9:16, crop it
+        const cropVideoUri = await cropVideo(result.assets[0].uri); // Crop the video
+        if (cropVideoUri != null) {
+          console.log("Video cropped to 9:16");
+          videoToProcess = cropVideoUri;
+        }
+      } else {
+        console.log("Video is already 9:16");
       }
 
-      const compressVidUri = await compressVideo(result.assets[0].uri) //compress video
-      if (compressVidUri != null) { setCameraRollVideo(compressVidUri); } //set video
+      // Generate thumbnail from cropped or original video
+      const thumb = await generateThumbnail(videoToProcess); // Generate thumbnail
+      console.log("Thumbnail generated:", thumb);
+
+      if (thumb) {
+        const compThumb = await compressThumbnail(thumb); // Compress thumbnail
+        console.log("Compressed thumbnail:", compThumb);
+
+        if (compThumb != null) setThumbnail(compThumb); // Set compressed thumbnail
+      }
+
+      // Compress video after thumbnail generation
+      if (videoToProcess) {
+        const compressVidUri = await compressVideo(videoToProcess); // Compress video
+        if (compressVidUri != null) {
+          setCameraRollVideo(compressVidUri); // Set compressed video
+        }
+      }
     }
   };
+
 
   const handleStartRecording = async () => {
     if (!isRecording) {
@@ -126,15 +157,15 @@ const CameraScreen = () => {
       if (res) {
         console.log("video recording res", res)
         setIsRecording(false);
-        
+
         const thumb = await generateThumbnail(res.uri); //generate thumb
         console.log("thumb", thumb)
 
-        if (thumb) { 
+        if (thumb) {
           const compThumb = await compressThumbnail(thumb) //compress thumb
           console.log("compThumb", compThumb)
-  
-          if(compThumb != null) setThumbnail(compThumb) // set thum
+
+          if (compThumb != null) setThumbnail(compThumb) // set thum
         }
 
         const compressVidUri = await compressVideo(res.uri)
@@ -148,13 +179,13 @@ const CameraScreen = () => {
   useEffect(() => {
     let startTime: number;
     let animationFrameId: number | undefined;
-  
+
     const animate = () => {
       const elapsedTime = Date.now() - startTime;
       setCounter(elapsedTime);
       animationFrameId = requestAnimationFrame(animate);
     };
-  
+
     if (isRecording) {
       startTime = Date.now();
       animationFrameId = requestAnimationFrame(animate);
@@ -164,14 +195,14 @@ const CameraScreen = () => {
       }
       setCounter(0);
     }
-  
+
     return () => {
       if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
       }
     };
   }, [isRecording]);
-  
+
   const formatCounter = (counter: number) => {
     const seconds = Math.floor(counter / 1000);
     const milliseconds = Math.floor(counter % 1000);
@@ -198,17 +229,17 @@ const CameraScreen = () => {
     }
   };
 
-  const compressThumbnail = async (thumbUri:any) => {
+  const compressThumbnail = async (thumbUri: any) => {
     setIsCompressing(true);
-  
+
     const timestamp = Date.now();
     const compressedThumbnailPath = `${FileSystem.cacheDirectory}comp_thumb_${timestamp}.jpg`;
-  
+
     try {
       // Execute FFmpeg command
       const session = await FFmpegKit.execute(`-i "${thumbUri}" -vf "scale=iw*0.75:ih*0.75" -qscale:v 2 "${compressedThumbnailPath}"`);
       const returnCode = await session.getReturnCode();
-  
+
       if (ReturnCode.isSuccess(returnCode)) {
         console.log("Thumbnail compression success", compressedThumbnailPath);
         return compressedThumbnailPath;
@@ -227,19 +258,46 @@ const CameraScreen = () => {
     }
   };
 
-  const compressVideo = async (videoUri: string) => {
-    
-    setIsCompressing(true);
-  
+  const cropVideo = async (videoUri: string) => {
     const timestamp = Date.now();
-    const compressedVideoPath = `${FileSystem.cacheDirectory}comp_video_${timestamp}.mp4`;
+    const croppedVideoPath = `${FileSystem.cacheDirectory}cropped_video_${timestamp}.mp4`;
   
     try {
+      // FFmpeg command to crop video to 9:16 aspect ratio
+      const session = await FFmpegKit.execute(
+        `-i "${videoUri}" -vf "crop=in_h*9/16:in_h" "${croppedVideoPath}"`
+      );
+      const returnCode = await session.getReturnCode();
   
+      if (ReturnCode.isSuccess(returnCode)) {
+        console.log("Video cropped successfully", croppedVideoPath);
+        return croppedVideoPath;
+      } else if (ReturnCode.isCancel(returnCode)) {
+        console.log("Cropping canceled");
+        return null;
+      } else {
+        console.log("Cropping error");
+        return null;
+      }
+    } catch (error) {
+      console.error("FFmpeg execution error during cropping:", error);
+      return null;
+    }
+  };
+
+  const compressVideo = async (videoUri: string) => {
+
+    setIsCompressing(true);
+
+    const timestamp = Date.now();
+    const compressedVideoPath = `${FileSystem.cacheDirectory}comp_video_${timestamp}.mp4`;
+
+    try {
+
       // Execute FFmpeg command
       const session = await FFmpegKit.execute(`-i "${videoUri}" -c:v h264 -b:v 8000k -c:a aac -b:a 128k -ac 2 -filter:a loudnorm "${compressedVideoPath}"`);
       const returnCode = await session.getReturnCode();
-  
+
       if (ReturnCode.isSuccess(returnCode)) {
         console.log("Compression success", compressedVideoPath);
         return compressedVideoPath;
@@ -257,12 +315,12 @@ const CameraScreen = () => {
       setIsCompressing(false);
     }
   };
-  
+
   const handlePublishing = async () => {
 
     console.log("publishing");
 
-    if(limit) {
+    if (limit) {
       alert("You've reached your 24hrs posting limit. Try again later.")
       return;
     }
@@ -284,7 +342,7 @@ const CameraScreen = () => {
       setIsUploading(false);
       return;
     }
-    
+
     //THUMBNAIL
     // Convert base64 encoded string to binary data
     const thumbBase64 = await RNFS.readFile(thumbnail, 'base64');
@@ -337,31 +395,77 @@ const CameraScreen = () => {
       await axios(vidOptions);
     } catch (error) {
       console.error('Video upload to BUNNY.NET error:', error);
-      setIsUploading(false);
       return;
     }
 
     // INSERT to SUPABASE
     try {
-      const { error } = await supabase.from("3sec").insert({
+      const { data, error } = await supabase.from("3sec").insert({
         user_id: user?.id,
         video_url: pullZoneVideoUrl,
         thumbnail_url: pullZoneThumbUrl,
         country_id: locationId,
-      });
-      if (!error) {
+      })
+        .select();
+
+      if (Array.isArray(data) && data.length > 0) {
+        console.log("data", data);
         console.log("VIDEO AND THUMBNAIL PUBLISHED SUCCESS!");
-        setRecordedVideo(undefined);
-        setCameraRollVideo(undefined);
-        setThumbnail(undefined)
-        router.push("/(profile)/" + profile.username);
+        // Fetch the video file and convert to Blob
+        const videoBlob = await fetch(videoUri).then((res) => res.blob());
+        // upload to livepeer
+        const assetData = { name: videoUri };
+
+        livepeer
+          .asset.create(assetData)
+          .then(async (response) => {
+            console.log("Asset upload request:", response);
+            const upload = new tus.Upload(videoBlob, {
+              endpoint: response.data?.tusEndpoint,
+              retryDelays: [0, 3000, 5000, 10000, 20000],
+              metadata: {
+                filename: `${profile.id}_${videoUri.name}`,
+                filetype: videoBlob.type,
+              },
+              onError: error => {
+                console.error("Failed because: " + error);
+              },
+              onProgress: (bytesUploaded, bytesTotal) => {
+              },
+              onSuccess: async () => {
+                console.log("Download %s from %s", videoUri.name, upload.url);
+                if (upload.url != null) {
+                  // Insert record into '3sec' table
+                  setRecordedVideo(undefined);
+                  setCameraRollVideo(undefined);
+                  setThumbnail(undefined)
+                  const { error } = await supabase.from("3sec").upsert({
+                    id: data[0].id,
+                    user_id: user?.id,
+                    playback_id: response?.data?.asset.playbackId,
+                  })
+                  if (!error) {
+                    setIsUploading(false);
+                    router.push("/(profile)/" + profile.username);
+                  } else {
+                    console.log("error", error);
+                  }
+                }
+              },
+            });
+            upload.start();
+          })
+          .catch((error) => {
+            console.error("Error requesting asset upload:", error);
+          });
+
       } else {
         console.log(error);
       }
     } catch (error) {
       console.error('Upload to 3sec error:', error);
     } finally {
-      setIsUploading(false);
+      //setIsUploading(false);
     }
   };
 
@@ -415,26 +519,26 @@ const CameraScreen = () => {
       }} />
       {/* CAMERA */}
       <CameraView
-          mode='video'
-          ref={cameraRef}
-          style={styles.camera}
-          facing={facingType}
-        >
-        </CameraView>
+        mode='video'
+        ref={cameraRef}
+        style={styles.camera}
+        facing={facingType}
+      >
+      </CameraView>
 
       {/* RECORDING MODE */}
 
-      {isRecording && 
-      <SafeAreaView className='absolute top-3 self-center'>
-        <View className='flex-row justify-start items-center p-3 rounded-full bg-zinc-700/40 w-24'>
-          <FontAwesome name="circle" size={16} color="red" />
-          <Text className='ml-1 text-white font-semibold'>{formatCounter(counter)}s</Text>
-        </View>
-      </SafeAreaView>}
+      {isRecording &&
+        <SafeAreaView className='absolute top-3 self-center'>
+          <View className='flex-row justify-start items-center p-3 rounded-full bg-zinc-700/40 w-24'>
+            <FontAwesome name="circle" size={16} color="red" />
+            <Text className='ml-1 text-white font-semibold'>{formatCounter(counter)}s</Text>
+          </View>
+        </SafeAreaView>}
 
       {!recordedVideo && !cameraRollVideo && !isCompressing && !isDurationError && (
         <>
-        {/* RIGHT CONTROLS */}
+          {/* RIGHT CONTROLS */}
           <View
             style={{
               position: 'absolute',
@@ -456,17 +560,16 @@ const CameraScreen = () => {
 
           {/* CAM ROLL CONTROLS */}
           <PressableAnimated className='absolute bottom-10 left-10 w-14 h-16 bg-black/30 rounded-2xl justify-center items-center border border-zinc-400' onPress={handlePickCamRollVideo}>
-              <Feather name="film" size={24} color="#CBCBCB" />
+            <Feather name="film" size={24} color="#CBCBCB" />
           </PressableAnimated>
 
           <Pressable
             onPress={handleStartRecording}
             onLongPress={handleStartRecording}
-            className={`absolute bottom-10 self-center  rounded-full flex-1 justify-center items-center ${
-              isRecording ? 'bg-red-500 w-24 h-24' : 'bg-white w-20 h-20'
-            }`}
+            className={`absolute bottom-10 self-center  rounded-full flex-1 justify-center items-center ${isRecording ? 'bg-red-500 w-24 h-24' : 'bg-white w-20 h-20'
+              }`}
           >
-            <View className='w-16 h-16 rounded-full bg-red-500'/>
+            <View className='w-16 h-16 rounded-full bg-red-500' />
           </Pressable>
         </>
       )}
@@ -516,7 +619,7 @@ const CameraScreen = () => {
                 />
               </View>
             } */}
-            
+
             <View className='absolute bottom-3 flex-row w-full items-center px-3'>
               <Pressable className='flex-row justify-between grow py-3 px-3 items-center rounded-full bg-white mt-3 mr-3' onPress={() => setLocationModalVisible(true)}>
                 <View><FontAwesome name="location-arrow" size={14} color="black" /></View>
@@ -527,7 +630,7 @@ const CameraScreen = () => {
                 <View className='w-2'></View>
                 <Text className='text-base font-semibold'>Publish</Text>
                 {isUploading ? <ActivityIndicator size="small" color="#0000ff" className='' /> :
-                <Ionicons name="chevron-forward" size={15} color="black" />}
+                  <Ionicons name="chevron-forward" size={15} color="black" />}
               </TouchableOpacity>
             </View>
           </View>
@@ -553,7 +656,7 @@ const CameraScreen = () => {
                 color="black"
               />
             </View>
-            
+
             {/* {thumbnail &&
               <View className='absolute top-2 right-2 rounded-full'>
                 <Image
@@ -563,7 +666,7 @@ const CameraScreen = () => {
                 />
               </View>
             } */}
-            
+
             <View className='absolute bottom-3 flex-row w-full items-center px-3'>
               <Pressable className='flex-row justify-between grow py-3 px-3 items-center rounded-full bg-white mt-3 mr-3' onPress={() => setLocationModalVisible(true)}>
                 <View><FontAwesome name="location-arrow" size={14} color="black" /></View>
@@ -574,7 +677,7 @@ const CameraScreen = () => {
                 <View className='w-2'></View>
                 <Text className='text-base font-semibold'>Publish</Text>
                 {isUploading ? <ActivityIndicator size="small" color="#0000ff" className='' /> :
-                <Ionicons name="chevron-forward" size={15} color="black" />}
+                  <Ionicons name="chevron-forward" size={15} color="black" />}
               </TouchableOpacity>
             </View>
           </View>
@@ -582,9 +685,9 @@ const CameraScreen = () => {
       )}
 
       {/* LOCATION MODAL */}
-      {locationModalVisible && <SetCountryModal visible={locationModalVisible} onClose={() => setLocationModalVisible(false)} passBack={handleCountrySelect}/>}
-      
-      
+      {locationModalVisible && <SetCountryModal visible={locationModalVisible} onClose={() => setLocationModalVisible(false)} passBack={handleCountrySelect} />}
+
+
     </View>
   );
 };

@@ -221,7 +221,7 @@ export default function ProfileUsernameScreen() {
               </PressableAnimated>
               {sum > 0 && <View className='bg-neutral rounded-full py-2 px-4 mr-2 justify-center items-center flex-row ml-1'>
                 <MaterialCommunityIcons name="hand-heart-outline" size={18} color={colorScheme == 'dark' ? 'black' : 'black'} />
-                <Text className='text-base font-medium ml-1'>{sum.toFixed(3)} ETH</Text>
+                <Text className='text-base font-medium ml-1 text-black'>{sum.toFixed(3)} ETH</Text>
               </View>}
             </View>
           </View>

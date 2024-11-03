@@ -22,7 +22,8 @@
         "EXPO_PUBLIC_SUPABASE_URL": "@wildfire-app/EXPO_PUBLIC_SUPABASE_URL",
         "EXPO_PUBLIC_SUPABASE_ANON_KEY": "@wildfire-app/EXPO_PUBLIC_SUPABASE_ANON_KEY",
         "EXPO_PUBLIC_BUNNY_ACCESS_KEY": "@wildfire-app/EXPO_PUBLIC_BUNNY_ACCESS_KEY",
-        "EXPO_GOOGLE_SERVICES_JSON": "@wildfire-app/EXPO_GOOGLE_SERVICES_JSON"
+        "EXPO_GOOGLE_SERVICES_JSON": "@wildfire-app/EXPO_GOOGLE_SERVICES_JSON",
+        "EXPO_PUBLIC_LIVEPEER_API_KEY": "@wildfire-app/EXPO_PUBLIC_LIVEPEER_API_KEY"
       },
       "autoIncrement": true
     }

@@ -3,7 +3,7 @@
     "name": "wildfire-app",
     "slug": "wildfire-app",
     "description": "3 seconds a day keeps the doctor away. A new content sharing app based on extremely short content.",
-    "version": "1.0.6",
+    "version": "1.0.7",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "me.3seconds",

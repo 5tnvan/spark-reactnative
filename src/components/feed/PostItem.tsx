@@ -16,14 +16,20 @@ import { increment_views} from "@/src/utils/views/incrementViews";
 import { fetchViewCount } from "@/src/utils/fetch/fetchViewCount";
 import { PressableAnimated } from "../pressables/PressableAnimated";
 import { ThreeDotsModal } from "../modals/ThreeDotsModal";
+import { Livepeer } from 'livepeer';
 
 function PostItem({ item, isPlaying, isMuted, toggleMute }: any) {
 
   const router = useRouter();
   const colorScheme = useColorScheme();
   const videoRef = useRef<any>(null);
+  const [playbackInfo, setPlaybackInfo] = useState<any>(null);
 
   console.log("post item", item.id, isPlaying);
+
+  const livepeer = new Livepeer({
+    apiKey: process.env.EXPO_PUBLIC_LIVEPEER_API_KEY,
+  });
 
   //COSUME PROVIDERS
   const { user } = useAuth();
@@ -138,6 +144,23 @@ function PostItem({ item, isPlaying, isMuted, toggleMute }: any) {
     }
   }, [firesModalVisible, commentModalVisible]);
 
+  // Fetch playback info from playback_id
+  useEffect(() => {
+    const fetchPlaybackInfo = async () => {
+      try {
+        console.log("playback_id", item.playback_id);
+        const info = await livepeer.playback.get(item.playback_id);
+        setPlaybackInfo(info.playbackInfo?.meta.source[0].url); // Set the playback info state
+      } catch (error) {
+        console.error("Error fetching playback info:", error);
+      }
+    };
+
+    if (item.playback_id) {
+      fetchPlaybackInfo();
+    }
+  }, [item.playback_id]);
+
   return (
     <View className={`mb-1 rounded-2xl relative`}>
       {/* HEADER */}
@@ -161,7 +184,7 @@ function PostItem({ item, isPlaying, isMuted, toggleMute }: any) {
       <View className="w-full h-[540px] relative">
         <Video
           ref={videoRef}
-          source={{ uri: item.video_url }}
+          source={{ uri: playbackInfo }}
           resizeMode="cover"
           style={styles.video}
           repeat={true}

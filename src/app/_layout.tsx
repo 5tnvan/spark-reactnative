@@ -11,6 +11,12 @@ export const unstable_settings = { initialRouteName: '(auth)', }; // Ensure that
 SplashScreen.preventAutoHideAsync(); // Prevent the splash screen from auto-hiding before asset loading is complete.
 import 'react-native-reanimated';
 import 'react-native-gesture-handler';
+import { ReadableStream } from "web-streams-polyfill";
+
+if (typeof global.ReadableStream === "undefined") {
+  global.ReadableStream =
+    ReadableStream as unknown as typeof global.ReadableStream;
+}
 
 /** 
  * ROOT LAYOUT NAVIGATION
