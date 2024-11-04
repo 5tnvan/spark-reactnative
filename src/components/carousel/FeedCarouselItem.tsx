@@ -2,20 +2,27 @@ import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet, View, Text, FlatList, Dimensions, Pressable, Modal, Animated } from 'react-native';
 import Video from 'react-native-video';
 import { FontAwesome } from '@expo/vector-icons';
+import { Livepeer } from 'livepeer';
 
 const CARD_WIDTH = Dimensions.get('window').width * 0.8;
 const MARGIN_LEFT = 0;
 const MARGIN_RIGHT = 4;
 
 
-const Item = ({ time, video_url, isPlaying, onPress }: any) => {
+const Item = ({ time, video_url, playback_id, isPlaying, onPress }: any) => {
 
     const videoRef = useRef<any>(null);
+
+    const livepeer = new Livepeer({
+        apiKey: process.env.EXPO_PUBLIC_LIVEPEER_API_KEY,
+      });
     
     //AFTER 3rd PLAY REPEAT, PAUSE VIDEO
     const [threePlayPaused, setThreePlayPaused] = useState(false);
     const repeatCountRef = useRef(0);
-
+    const [playbackInfo, setPlaybackInfo] = useState<any>(null);
+    
+    // Set fallback URI if playbackInfo equals "error"
     const handleThreePlayRepeat = () => {
         if (repeatCountRef.current < 2) {
             repeatCountRef.current += 1;
@@ -49,11 +56,31 @@ const Item = ({ time, video_url, isPlaying, onPress }: any) => {
         }
     }, [isPlaying]);
 
+    // Fetch playback info using playback_id
+    useEffect(() => {
+        const fetchPlaybackInfo = async () => {
+            try {
+                console.log("playback_id", playback_id);
+                const info = await livepeer.playback.get(playback_id);
+                setPlaybackInfo(info.playbackInfo?.meta.source[0].url);
+            } catch (error) {
+                //console.error("Error fetching playback info:", error);
+                setPlaybackInfo("error");
+            }
+        };
+
+        if (playback_id) {
+            fetchPlaybackInfo();
+        }
+    }, [playback_id]);
+
      return (
         <Pressable style={styles.card} onPress={onPress}>
         <Video
             ref={videoRef}
-            source={{ uri: video_url }}
+            source={{ uri: playbackInfo === "error" 
+                ? video_url
+                : playbackInfo }}
             resizeMode="cover"
             style={styles.video}
             repeat={true}
@@ -61,6 +88,7 @@ const Item = ({ time, video_url, isPlaying, onPress }: any) => {
             paused={!isPlaying || threePlayPaused}
             onEnd={handleThreePlayRepeat}
         />
+        
         {/* WATCH THIS */}
         {threePlayPaused && (
           <Animated.View style={[styles.overlay, { opacity: fadeAnim }]}>

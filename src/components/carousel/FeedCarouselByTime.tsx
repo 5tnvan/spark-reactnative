@@ -39,12 +39,15 @@ function FeedCarouselByTime() {
     //OPTIMIZE FLATLIST
     const renderItem = useCallback(({ item, index }: any) => (
         <FeedCarouselItem
+            playback_id={item.first_video.playback_id}
             video_url={item.first_video.video_url}
             time={item.time}
             onPress={() => openStory(item.data)}
             isPlaying={index === playingIndex}
         />
     ), [playingIndex]);
+
+    
 
     return (
         <>

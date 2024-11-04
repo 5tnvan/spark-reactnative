@@ -29,7 +29,8 @@ export const useFeedFromCountry = (times: number) => {
           feeds.push({
             id: (i + 1).toString(),
             data: feed,
-            first_video: feed[0].video_url,
+            first_video_url: feed[0].video_url,
+            first_video_playback_id: feed[0].playback_id,
             country_name: feed[0].country.name
           });
         }

@@ -39,7 +39,8 @@ function FeedCarouselByCountry() {
     //OPTIMIZE FLATLIST
     const renderItem = useCallback(({ item, index }: any) => (
         <FeedCarouselItem
-            video_url={item.first_video}
+            playback_id={item.first_video_playback_id}
+            video_url={item.first_video_url}
             time={item.country_name}
             onPress={() => openStory(item.data)}
             isPlaying={index === playingIndex}
