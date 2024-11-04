@@ -152,7 +152,8 @@ function PostItem({ item, isPlaying, isMuted, toggleMute }: any) {
         const info = await livepeer.playback.get(item.playback_id);
         setPlaybackInfo(info.playbackInfo?.meta.source[0].url); // Set the playback info state
       } catch (error) {
-        console.error("Error fetching playback info:", error);
+        //console.error("Error fetching playback info:", error);
+        setPlaybackInfo("error");
       }
     };
 
@@ -182,16 +183,30 @@ function PostItem({ item, isPlaying, isMuted, toggleMute }: any) {
 
       {/* VIDEO */}
       <View className="w-full h-[540px] relative">
+      {playbackInfo == "error" ? (
         <Video
-          ref={videoRef}
-          source={{ uri: playbackInfo }}
-          resizeMode="cover"
-          style={styles.video}
-          repeat={true}
-          volume={isMuted ? 0 : 1}
-          paused={!isPlaying}
-          onEnd={handleThreePlayRepeat}
-        />
+        ref={videoRef}
+        source={{ uri: item.video_url }}
+        resizeMode="cover"
+        style={styles.video}
+        repeat={true}
+        volume={isMuted ? 0 : 1}
+        paused={!isPlaying}
+        onEnd={handleThreePlayRepeat}
+      />
+      ): (
+        <Video
+        ref={videoRef}
+        source={{ uri: playbackInfo }}
+        resizeMode="cover"
+        style={styles.video}
+        repeat={true}
+        volume={isMuted ? 0 : 1}
+        paused={!isPlaying}
+        onEnd={handleThreePlayRepeat}
+      />
+      )}
+        
 
         {/* AVATAR */}
         <TouchableOpacity className="absolute p-3" onPress={() => router.push("/(profile)/" + item.profile.username)}>

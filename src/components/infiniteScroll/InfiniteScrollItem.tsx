@@ -191,7 +191,8 @@ function InfiniteScrollItem({ item, isPlaying }: any) {
         const info = await livepeer.playback.get(item.playback_id);
         setPlaybackInfo(info.playbackInfo?.meta.source[0].url); // Set the playback info state
       } catch (error) {
-        console.error("Error fetching playback info:", error);
+        //console.error("Error fetching playback info:", error);
+        setPlaybackInfo(error);
       }
     };
 
@@ -205,15 +206,17 @@ function InfiniteScrollItem({ item, isPlaying }: any) {
             <Pressable onPress={handleManualPause}>
                 {/* FULL-SCREEN VIDEO */}
                 <View style={styles.videoContainer}>
+                    
                     <Video
                         ref={video}
-                        source={{ uri: playbackInfo }}
+                        source={{ uri: playbackInfo === "error" ? item.video_url : playbackInfo }}  // Replace with your fallback URI
                         resizeMode="cover"
                         style={styles.video}
                         repeat={true}
                         onEnd={handleThreePlayRepeat}
                         paused={!isPlaying}
                     />
+
                 </View>
                 {/* WATCH AGAIN */}
                 {threePlayPaused && (

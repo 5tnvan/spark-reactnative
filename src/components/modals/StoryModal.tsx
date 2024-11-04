@@ -66,11 +66,14 @@ export default function StoryModal({ visible, data, storyIndex, onClose }: Props
 
     handleIncrementViews(story);
 
-    //console.log("isPlaying", story.id) //last one always renders twice
+    // Set fallback URI if playbackInfo equals "error"
+  const videoUri = playbackInfo === "error" 
+  ? story.video_url
+  : playbackInfo;
 
     return (
       <Video
-        source={{ uri: playbackInfo }}
+        source={{ uri: videoUri }}
         resizeMode="cover"
         style={styles.backgroundImage}
         paused={isPaused}
@@ -203,7 +206,8 @@ useEffect(() => {
         setPlaybackInfo(info.playbackInfo?.meta.source[0].url);
       }
     } catch (error) {
-      console.error("Error fetching playback info:", error);
+      //console.error("Error fetching playback info:", error);
+      setPlaybackInfo("error");
     }
   };
 
