@@ -18,8 +18,15 @@ import { CommentsModal } from '../modals/CommentsModal';
 import { useAuth } from '../../services/providers/AuthProvider';
 import { increment_views } from '../../utils/views/incrementViews';
 import { ThreeDotsModal } from '../modals/ThreeDotsModal';
+import { Livepeer } from 'livepeer';
 
 function InfiniteScrollItem({ item, isPlaying }: any) {
+
+    const livepeer = new Livepeer({
+        apiKey: process.env.EXPO_PUBLIC_LIVEPEER_API_KEY,
+      });
+
+    const [playbackInfo, setPlaybackInfo] = useState<any>(null);
 
     console.log("item", item);
 
@@ -176,6 +183,23 @@ function InfiniteScrollItem({ item, isPlaying }: any) {
         if (!error) setTemporaryFollowed(true);
       }
 
+      // Fetch playback info from playback_id
+  useEffect(() => {
+    const fetchPlaybackInfo = async () => {
+      try {
+        console.log("playback_id", item.playback_id);
+        const info = await livepeer.playback.get(item.playback_id);
+        setPlaybackInfo(info.playbackInfo?.meta.source[0].url); // Set the playback info state
+      } catch (error) {
+        console.error("Error fetching playback info:", error);
+      }
+    };
+
+    if (item.playback_id) {
+      fetchPlaybackInfo();
+    }
+  }, [item.playback_id]);
+
     return (
         <>
             <Pressable onPress={handleManualPause}>
@@ -183,7 +207,7 @@ function InfiniteScrollItem({ item, isPlaying }: any) {
                 <View style={styles.videoContainer}>
                     <Video
                         ref={video}
-                        source={{ uri: item.video_url }}
+                        source={{ uri: playbackInfo }}
                         resizeMode="cover"
                         style={styles.video}
                         repeat={true}

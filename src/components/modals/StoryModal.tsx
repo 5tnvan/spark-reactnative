@@ -28,6 +28,7 @@ import { increment_views } from '../../utils/views/incrementViews';
 import { useAuth } from '../../services/providers/AuthProvider';
 import { router } from 'expo-router';
 import { FontAwesome5 } from '@expo/vector-icons';
+import { Livepeer } from 'livepeer';
 
 type Props = {
   visible: boolean;
@@ -51,6 +52,11 @@ export default function StoryModal({ visible, data, storyIndex, onClose }: Props
   const [isMuted, setIsMuted] = useState(false);
   const [wentBack, setWentBack] = useState(0);
   const [temporaryFollowed, setTemporaryFollowed] = useState(false);
+  const [playbackInfo, setPlaybackInfo] = useState<any>(null);
+
+  const livepeer = new Livepeer({
+    apiKey: process.env.EXPO_PUBLIC_LIVEPEER_API_KEY,
+  });
 
   const handleIncrementViews = async (story: any) => {
     increment_views(story.id);
@@ -64,7 +70,7 @@ export default function StoryModal({ visible, data, storyIndex, onClose }: Props
 
     return (
       <Video
-        source={{ uri: story.video_url }}
+        source={{ uri: playbackInfo }}
         resizeMode="cover"
         style={styles.backgroundImage}
         paused={isPaused}
@@ -187,6 +193,24 @@ export default function StoryModal({ visible, data, storyIndex, onClose }: Props
       });
     }
   }, [currentStoryIndex, isPaused]);
+
+  // Inside StoryModal component
+useEffect(() => {
+  const fetchPlaybackInfo = async () => {
+    try {
+      if (currentStory && currentStory.playback_id) {
+        const info = await livepeer.playback.get(currentStory.playback_id);
+        setPlaybackInfo(info.playbackInfo?.meta.source[0].url);
+      }
+    } catch (error) {
+      console.error("Error fetching playback info:", error);
+    }
+  };
+
+  fetchPlaybackInfo();
+}, [currentStoryIndex]);
+
+  console.log("data.feed", data.feed);
 
   return (
     <Modal

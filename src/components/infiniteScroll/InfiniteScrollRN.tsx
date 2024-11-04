@@ -7,10 +7,15 @@ import { LogoWildfireLit } from '../logos/LogoFireLit';
 import { useFeed } from '../../hooks/useFeed';
 import { useIsFocused } from '@react-navigation/native';
 import InfiniteScrollItem from './InfiniteScrollItem';
+import { Livepeer } from 'livepeer';
 
 export default function InfiniteScrollRN() {
   const router = useRouter();
   const isFocused = useIsFocused(); // Get focused state
+
+  const livepeer = new Livepeer({
+    apiKey: process.env.EXPO_PUBLIC_LIVEPEER_API_KEY,
+  });
 
   //FETCH DIRECTLY
   const { isLoading, feed, fetchMore, refetch } = useFeed();

@@ -34,7 +34,7 @@ export const useFeed = () => {
     const { data, error } = await supabase
   .from('3sec_random_view')
   .select(
-    `id, thumbnail_url, video_url, created_at, suppressed, country:country_id(id, name), 
+    `id, thumbnail_url, video_url, playback_id, created_at, suppressed, country:country_id(id, name), 
     profile:user_id(id, username, avatar_url), 
     3sec_tips(created_at, network, transaction_hash, amount, currency, comment, tipper:wallet_id(id, username, avatar_url)), 
     3sec_views(view_count), 
