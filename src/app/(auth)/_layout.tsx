@@ -71,20 +71,6 @@ export default function AuthLayout() {
         options={{
           title: 'Register',
           tabBarIcon: ({ color }) => <TabBarIcon name="credit-card" color={color} />,
-          headerRight: () => (
-            <Link href="/modals/tool-tip-register-modal" asChild>
-              <Pressable>
-                {({ pressed }) => (
-                  <FontAwesome
-                    name="info-circle"
-                    size={25}
-                    color={Colors[colorScheme ?? 'light'].text}
-                    style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
-                  />
-                )}
-              </Pressable>
-            </Link>
-          ),
         }}
       />
     </Tabs>

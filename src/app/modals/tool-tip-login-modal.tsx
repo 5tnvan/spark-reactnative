@@ -31,23 +31,21 @@ export default function ModalScreen() {
 
         {/* Create a wildpay account */}
         <View className='flex-row items-center justify-center mb-5'>
-          <Text className="text-lg mr-2 font-bold">Log in with </Text>
+          <Text className="text-lg mr-2 font-bold">Sign in with </Text>
           <Image
             source={require('@/assets/images/wildpay-logo.png')}
             className='w-5 h-5 mr-1'
           />
-          <Text className='text-lg font-bold mr-2' style={{ color: '#3D45E7' }}>wildpay</Text>
+          <Text className='text-lg font-bold mr-2' style={{ color: '#3D45E7' }}>Kinnect</Text>
         </View>
 
         {/* Tooltips */}
         <View className="flex-col w-full">
-          <ToolTip iconName="key" iconSize={16}><Text>Login with the same <Text className="font-semibold text-accent">username</Text> and <Text className="font-semibold text-accent">password</Text></Text></ToolTip>
+          <ToolTip iconName="key" iconSize={16}><Text>Sign in using your Kinnect Walet credentials</Text></ToolTip>
         </View>
         
       </View>
       
-      {/* Link */}
-      <Link href="/(auth)/register" className="mb-4"><Text className="text-base underline">{`Don't have an account? Register`}</Text></Link>
       {/* Use a light status bar on iOS to account for the black space above the modal */}
       <StatusBar style={Platform.OS === "ios" ? "light" : "auto"} />
     </SafeAreaView>

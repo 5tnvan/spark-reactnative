@@ -51,7 +51,7 @@ export function LevelsModal({ visible, onClose }: any) {
                         size={22}
                         color={colorScheme == 'dark' ? 'white' : 'black'}
                     />
-                    <Text className='text-lg font-medium self-center'>My levels</Text>
+                    <Text className='text-lg font-medium self-center'>Levels</Text>
                     <Text className='text-lg font-medium self-center'>{`     `} </Text>
                 </View>
                 {/* SCROLL VIEW */}
@@ -60,11 +60,11 @@ export function LevelsModal({ visible, onClose }: any) {
                     <View className='mb-4'>
                         <View className='flex-row justify-between mb-3'>
                             <Text className='text-base'>Ground Level</Text>
-                            <Text className='text-base font-medium text-accent'>Noob</Text>
+                            <Text className='text-base font-medium text-accent'>Ember</Text>
                         </View>
                         <View className='bg-accent rounded-xl'>
                             <Image
-                                source={require("../../../assets/images/levels/level0.png")}
+                                source={require("../../../assets/images/levels/ember.jpg")}
                                 className='rounded-xl'
                                 style={{ width: '100%', height: 400, opacity: 0.7 }}
                             />
@@ -76,11 +76,11 @@ export function LevelsModal({ visible, onClose }: any) {
                         <View className='mb-4'>
                             <View className='flex-row justify-between mb-3'>
                                 <Text className='text-base'>Level 1</Text>
-                                <Text className='text-base font-medium text-accent'>Creator</Text>
+                                <Text className='text-base font-medium text-accent'>Glow</Text>
                             </View>
                             <View className='bg-accent rounded-xl'>
                                 <Image
-                                    source={require("../../../assets/images/levels/level1.png")}
+                                    source={require("../../../assets/images/levels/glow.jpg")}
                                     className='rounded-xl'
                                     style={{ width: '100%', height: 400, opacity: 0.7 }}
                                 />
@@ -100,7 +100,7 @@ export function LevelsModal({ visible, onClose }: any) {
                         <View className='mb-4'>
                             <View className='flex-row justify-between mb-3'>
                                 <Text className='text-base'>Level 2</Text>
-                                <Text className='text-base font-medium text-accent'>Builder</Text>
+                                <Text className='text-base font-medium text-accent'>Flame</Text>
                             </View>
                             <View className='bg-accent rounded-xl'>
                                 <Image
@@ -124,7 +124,7 @@ export function LevelsModal({ visible, onClose }: any) {
                         <View className='mb-4'>
                             <View className='flex-row justify-between mb-3'>
                                 <Text className='text-base'>Level 3</Text>
-                                <Text className='text-base font-medium text-accent'>Architect</Text>
+                                <Text className='text-base font-medium text-accent'>Blaze</Text>
                             </View>
                             <View className='bg-accent rounded-xl'>
                                 <Image
@@ -148,7 +148,7 @@ export function LevelsModal({ visible, onClose }: any) {
                         <View className='mb-4'>
                             <View className='flex-row justify-between mb-3'>
                                 <Text className='text-base'>Level 4</Text>
-                                <Text className='text-base font-medium text-accent'>Visionary</Text>
+                                <Text className='text-base font-medium text-accent'>Inferno</Text>
                             </View>
                             <View className='bg-accent rounded-xl'>
                                 <Image
@@ -172,7 +172,7 @@ export function LevelsModal({ visible, onClose }: any) {
                         <View className='mb-4'>
                             <View className='flex-row justify-between mb-3'>
                                 <Text className='text-base'>Level 5</Text>
-                                <Text className='text-base font-medium text-accent'>God-mode</Text>
+                                <Text className='text-base font-medium text-accent'>Starfire</Text>
                             </View>
                             <View className='bg-accent rounded-xl'>
                                 <Image

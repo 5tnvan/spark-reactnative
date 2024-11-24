@@ -106,10 +106,10 @@ export default function RegisterScreen() {
           Create a
         </Text>
         <Image
-          source={require("@/assets/images/wildpay-logo.png")}
+          source={require("@/assets/images/kinnect/faviconkinnect.png")}
           className="w-5 h-5 mr-1"
         />
-        <Text className="text-lg font-bold mr-2" style={{ color: '#3D45E7' }}>wildpay</Text>
+        <Text className="text-lg font-bold mr-2" style={{ color: '#3D45E7' }}>Kinnect</Text>
         <Text className="text-lg text-black dark:text-white font-bold">
           account
         </Text>

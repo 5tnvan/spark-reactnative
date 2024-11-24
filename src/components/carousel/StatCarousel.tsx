@@ -19,7 +19,7 @@ const MARGIN_RIGHT = 7;
 const cardData = [
     // { id: '1', title: 'Total Views', stat: 0, cta: 'Create', icon: 'eye', avatar: false },
     { id: '2', title: '', stat: '', cta: 'View all levels', avatar: true },
-    { id: '3', title: 'Balance', stat: 0, cta: 'View Wildpay', icon: 'coins' },
+    { id: '3', title: 'Kinnect Wallet', stat: 0, cta: 'View Wallet', icon: 'coins' },
 ];
 
 export default function StatCarousel() {
@@ -44,7 +44,7 @@ export default function StatCarousel() {
     //DYNAMICALLY GENERATE CARDS DATA
     // const sumOfViews = userFeed?.reduce((total: any, item: any) => total + item.views, 0);
     const highestLevel = profile?.levels.reduce((max: number, item: any) => item.level > max ? item.level : max, 0);
-    const levelNames = ["noob", "creator", "builder", "architect", "visionary", "god-mode"];
+    const levelNames = ["Ember", "Glow", "Flame", "Blaze", "Inferno", "Starfire"];
     const levelName = levelNames[highestLevel] || "unknown";
     const sum = calculateSum(incomingRes.ethereumData) + calculateSum(incomingRes.baseData);
     const balance = sum === 0 ? sum.toFixed(2) : sum.toFixed(3);
@@ -52,7 +52,7 @@ export default function StatCarousel() {
     // cardData[0].stat = sumOfViews;
     cardData[0].title = 'Level ' + highestLevel;
     cardData[0].stat = levelName;
-    cardData[1].stat = balance;
+    cardData[1].stat = profile?.username;
 
     //HANDLE LEVELS MODAL
     const [levelsModalVisible, setLevelsModalVisible] = useState(false); //levels modal
@@ -69,7 +69,7 @@ export default function StatCarousel() {
                 setLevelsModalVisible(true);
                 break;
             case '3':
-                Linking.openURL('https://www.wildpay.app/' + profile.username);
+                Linking.openURL('https://www.kinnectwallet.com/' + profile.username);
                 break;
             default:
                 console.log('Button pressed');
