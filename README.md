@@ -1,11 +1,10 @@
-# Wildfire App
->This is the source code for Wildfire Native Adnroid and iOS apps.
+# Spark App
+>This is the source code for Spark Native Adnroid and iOS apps.
 
 
 <h4 align="center">
   <a href="https://docs.scaffoldeth.io">Github</a> |
-  Wildfire <a href="https://www.3seconds.me">www.3seconds.me</a> |
-  Wildpay <a href="https://www.wildpay.app">www.wildpay.app</a>
+  Spark App <a href="https://www.3seconds.me">www.3seconds.me</a> |
 </h4>
 
 🔥 **Got 3 seconds?**
