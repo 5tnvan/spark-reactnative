@@ -1,5 +1,5 @@
 # Spark App
->This is the source code for Spark Native Adnroid and iOS apps.
+>This is the source code for Spark Native Android and iOS apps.
 
 
 <h4 align="center">
